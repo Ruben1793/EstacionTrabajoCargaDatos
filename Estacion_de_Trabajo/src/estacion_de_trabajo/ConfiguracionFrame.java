@@ -43,11 +43,12 @@ public class ConfiguracionFrame extends JFrame {
     private JLabel lblTNSNAMES = new JLabel();
     private JButton botonGuardar = new JButton();
     private JButton selectORA = new JButton();
+    private String path = "C:\\configConexion\\config.txt";
 
     public ConfiguracionFrame() {
         try {
             jbInit();
-            File f = new File("C:\\configConexion\\config.txt");
+            File f = new File(path);
             if (f.exists()){
                 JOptionPane.showMessageDialog(this,"Ora File Location:" + f.getAbsolutePath());
                 getConfigInfo(f);
@@ -109,7 +110,7 @@ public class ConfiguracionFrame extends JFrame {
                 // Creating new directory in Java, if it doesn't exists 
              boolean success = false;
              String path = configLocation + "\\configConexion";
-             File directory = new File(path); 
+             File directory = new File("C:\\configConexion\\config.txt"); 
              if (directory.exists()) { 
                  System.out.println("Directory already exists ...");
              } 
@@ -146,6 +147,22 @@ public class ConfiguracionFrame extends JFrame {
                       Logger.getLogger(ConfiguracionFrame.class.getName()).log(Level.SEVERE, null, ex);
                  }
              }
+        }else{
+            f.delete();
+            File file = new File("C:\\configConexion\\config.txt");
+            FileWriter fw;
+            try {
+                fw = new FileWriter(file);
+                BufferedWriter bw = new BufferedWriter(fw);
+                bw.write("Usuario: " + usuario.getText()+"\n");
+                bw.write("Password: " + password.getText()+"\n");
+                bw.write("TNSNames: " + TNSNames.getSelectedItem().toString());
+                bw.close();
+                System.out.println("Se guardo la nueva configuracion de conexion");
+                JOptionPane.showMessageDialog(this, "Se guardo la nueva configuracion de conexion");
+            } catch (IOException g) {
+                g.printStackTrace();
+            }
         }
 
     }

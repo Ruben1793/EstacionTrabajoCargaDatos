@@ -126,6 +126,18 @@ public class ReiniciarInterfazFrame extends JFrame {
                 rset.close();
                 interfaz = null;
         }else if(interfazTodas.isSelected()){
+            for(int i =0; i<seleccionarInterfaz.getItemCount();i++){
+                    conn = DriverManager.getConnection(urlhost, user, pass);
+                    Statement stmt = conn.createStatement();
+                    ResultSet rset = null;
+                    interfaz = seleccionarInterfaz.getItemAt(i).toString();
+                    System.out.println("UPDATE "+ interfaz +" SET estatus_carga = 'CARGAR' WHERE estatus_carga != 'CARGAR'");
+                    rset = stmt.executeQuery("UPDATE "+ interfaz +" SET estatus_carga = 'CARGAR' WHERE estatus_carga != 'CARGAR'");
+                    stmt.close();
+                    conn.close();
+                    rset.close();
+                    interfaz = null;
+                }
         }else{
             JOptionPane.showMessageDialog(this, "Por favor selecciona: Indivual o Todas?");
         }

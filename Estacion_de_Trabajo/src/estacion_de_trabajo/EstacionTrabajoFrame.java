@@ -5,20 +5,20 @@ import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.*;
 
-import java.text.NumberFormat;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import java.util.ArrayList;
-
-import java.util.Arrays;
-
-import java.util.List;
+import java.util.IllegalFormatConversionException;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -29,13 +29,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
-import oracle.jdbc.OracleCallableStatement;
 
 
 public class EstacionTrabajoFrame extends JFrame {
     private JButton botonExaminar = new JButton();
-    private JButton botonSelectCVSTodos = new JButton();
-    private JButton botonSelectCVS = new JButton();
     private JButton botonCargarInterfaz = new JButton();
     private JButton botonReiniciarInterfaz = new JButton();
     private JButton botonBorrarInterfaz = new JButton();
@@ -53,8 +50,8 @@ public class EstacionTrabajoFrame extends JFrame {
     private static String user;
     private static String pass;
     private String urlhost = "jdbc:oracle:thin:@192.168.56.11:1521:orcl";
-    public static int csvCount;
-    static int csv;
+    protected static int csvCount;
+    static int interfaces;
     static int i_numero;
     public EstacionTrabajoFrame() {
         try {
@@ -131,19 +128,15 @@ public class EstacionTrabajoFrame extends JFrame {
                     botonExaminar_actionPerformed(e);
                 }
             });
-        botonSelectCVSTodos.setText("Seleccionar Todos Los CSVs");
-        botonSelectCVSTodos.setBounds(new Rectangle(130, 70, 180, 23));
-        
-        botonSelectCVS.setText("Seleccionar CSV");
-        botonSelectCVS.setBounds(new Rectangle(340, 70, 180, 23));
-        
+
+
         botonCargarInterfaz.setText("Cargar Interfaz");
         botonCargarInterfaz.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                    botonCargarInterfaz_actionPerformed(e);
                 }
             });
-        botonCargarInterfaz.setBounds(new Rectangle(20, 180, 120, 23));
+        botonCargarInterfaz.setBounds(new Rectangle(15, 135, 120, 23));
         
         botonReiniciarInterfaz.setText("Reinicar Interfaz");
         botonReiniciarInterfaz.addActionListener(new ActionListener() {
@@ -152,7 +145,7 @@ public class EstacionTrabajoFrame extends JFrame {
                     botonReiniciarInterfaz_actionPerformed(e);
                 }
             });
-        botonReiniciarInterfaz.setBounds(new Rectangle(20, 210, 120, 23));
+        botonReiniciarInterfaz.setBounds(new Rectangle(15, 170, 120, 23));
         
         botonBorrarInterfaz.setText("Borrar Interfaz");
         botonBorrarInterfaz.addActionListener(new ActionListener() {
@@ -161,10 +154,10 @@ public class EstacionTrabajoFrame extends JFrame {
                     botonBorrarInterfaz_actionPerformed(e);
                 }
             });
-        botonBorrarInterfaz.setBounds(new Rectangle(160, 180, 120, 23));
+        botonBorrarInterfaz.setBounds(new Rectangle(155, 130, 120, 23));
         
         botonCargarDatos.setText("Cargar Datos");
-        botonCargarDatos.setBounds( new Rectangle( 400, 180, 110, 23));
+        botonCargarDatos.setBounds(new Rectangle(390, 130, 110, 23));
 
         botonCargarDatos.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -172,7 +165,7 @@ public class EstacionTrabajoFrame extends JFrame {
                 }
             });
         botonBorrarDatos.setText("Borrar Datos");
-        botonBorrarDatos.setBounds(new Rectangle(520, 180, 110, 23));
+        botonBorrarDatos.setBounds(new Rectangle(515, 130, 110, 23));
 
         botonBorrarDatos.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -185,7 +178,7 @@ public class EstacionTrabajoFrame extends JFrame {
                     botonGenerarReporte_actionPerformed(e);
                 }
             });
-        botonGenerarReporte.setBounds(new Rectangle(400, 210, 130, 23));
+        botonGenerarReporte.setBounds(new Rectangle(390, 165, 130, 23));
         
         jLabel1.setText("1. Extraccion ");
         jLabel1.setBounds(new Rectangle(10, 10, 70, 14));
@@ -194,10 +187,10 @@ public class EstacionTrabajoFrame extends JFrame {
         jLabel2.setBounds(new Rectangle(40, 40, 23, 14));
         
         jLabel3.setText("2. Transformacion");
-        jLabel3.setBounds(new Rectangle(10, 150, 120, 14));
+        jLabel3.setBounds(new Rectangle(5, 105, 120, 14));
         
         jLabel4.setText("3. Carga ");
-        jLabel4.setBounds(new Rectangle(400, 150, 60, 14));
+        jLabel4.setBounds(new Rectangle(390, 105, 60, 14));
         
         tabla.setModel(new DefaultTableModel(
                     new Object [][] {},
@@ -206,7 +199,7 @@ public class EstacionTrabajoFrame extends JFrame {
                     }
                 ));
         
-        scroll.setBounds(new Rectangle(0, 260, 740, 240));
+        scroll.setBounds(new Rectangle(0, 220, 740, 280));
         scroll.setPreferredSize(new Dimension(400,300));
         scroll.setViewportView(tabla);
         scroll.getViewport().add(tabla);
@@ -223,8 +216,6 @@ public class EstacionTrabajoFrame extends JFrame {
         this.getContentPane().add(botonBorrarInterfaz, null);
         this.getContentPane().add(botonReiniciarInterfaz, null);
         this.getContentPane().add(botonCargarInterfaz, null);
-        this.getContentPane().add(botonSelectCVS, null);
-        this.getContentPane().add(botonSelectCVSTodos, null);
         this.getContentPane().add(botonExaminar, null);
         this.setTitle("Estacion de Trabajo");
     }
@@ -250,13 +241,16 @@ public class EstacionTrabajoFrame extends JFrame {
                     csvCount= m.getCSVCount(ficheros[x]);
                     System.out.println(csvCount);
                     model.setValueAt(csvCount, i_numero, 1);
+                    model.setValueAt("Pendiente", i_numero, 6);
                     i_numero++;
                 }
             } catch (IOException f) {
                 f.printStackTrace();
             }
         }
-       
+        interfaces = i_numero;
+        i_numero =0;
+        csvCount =0;
     }
     private void botonBorrarInterfaz_actionPerformed(ActionEvent e) {
         if(direccion.getText().isEmpty()){
@@ -290,7 +284,7 @@ public class EstacionTrabajoFrame extends JFrame {
         bdf.setVisible(true);
     }
     private void botonGenerarReporte_actionPerformed(ActionEvent e) {
-        ReporteInterfaz reporte = new ReporteInterfaz(user,pass,urlhost);
+        ReporteInterfaz reporte = new ReporteInterfaz(user,pass,urlhost,direccion.getText());
         reporte.setVisible(true);
     }
     private void botonCargarDatos_actionPerformed(ActionEvent e) {
@@ -302,49 +296,18 @@ public class EstacionTrabajoFrame extends JFrame {
              ex.printStackTrace();
         }
         try {
-            Connection conn = DriverManager.getConnection(urlhost, user, pass);
-            Statement stmt = conn.createStatement();
-            ResultSet rset = stmt.executeQuery("select PROCEDIMIENTO_CARGA from AA_CARGAS_DE_DATOS");
-            String call;
-            while (rset.next()){
-                    System.out.println (rset.getString(1));   // Print col 1
-                    call = rset.getString(1);
-                    callableStatement = conn.prepareCall("{ call " + call + " }");
-                    callableStatement.execute();
-                }     
-            stmt.close();
-            conn.close();
-            rset.close();
-        } catch (SQLException f) {
-            System.out.println(f.getMessage());
-            f.printStackTrace();
-        }
-        
-        try {
-            Connection conn = DriverManager.getConnection(urlhost, user, pass);
-            Statement stmt = conn.createStatement();
-            ResultSet rset = stmt.executeQuery("select PROCEDIMIENTO_CARGA from AA_CARGAS_DE_DATOS");
-            String call;
-            while (rset.next()){
-                    System.out.println (rset.getString(1));   // Print col 1
-                    call = rset.getString(1);
-                    callableStatement = conn.prepareCall("{ call " + call + " }");
-                    callableStatement.execute();
-                }     
-            stmt.close();
-            conn.close();
-            rset.close();
-        } catch (SQLException f) {
-            System.out.println(f.getMessage());
-            f.printStackTrace();
-        }
-        
-        try {
             DefaultTableModel model = (DefaultTableModel) tabla.getModel();
             Connection conn = DriverManager.getConnection(urlhost, user, pass);
             Statement stmt = conn.createStatement();
-            ResultSet rset = null ;
-            for(int x =0; x<i_numero; x++){
+            ResultSet rset = stmt.executeQuery("select PROCEDIMIENTO_CARGA from AA_CARGAS_DE_DATOS");
+            String call;
+            while (rset.next()){
+                    System.out.println (rset.getString(1));   // Print col 1
+                    call = rset.getString(1);
+                    callableStatement = conn.prepareCall("{ call " + call + " }");
+                    callableStatement.execute();
+                }     
+            for(int x =0; x<interfaces; x++){
                 rset = stmt.executeQuery("Select Count(*) From " + model.getValueAt(x, 0));
                 System.out.println("Select Count(*) From " + model.getValueAt(x, 0));
                 int value = (Integer)model.getValueAt(x, 1);
@@ -352,28 +315,29 @@ public class EstacionTrabajoFrame extends JFrame {
                 //int tablevalue = Integer.parseInt(model.getValueAt(x, 2).toString());
                 if(rset.next()){
                     model.setValueAt(rset.getInt(1),x ,2);
+                    model.setValueAt("En proceso", x, 6);
                     model.setValueAt(value - rset.getInt(1),x, 3);
                 }  
                 //System.out.println("SELECT COUNT(*) FROM "+ model.getValueAt(x, 0) +" WHERE ESTATUS_CARGA = 'OK'");
                 rset = stmt.executeQuery("SELECT COUNT(*) FROM "+ model.getValueAt(x, 0) +" WHERE ESTATUS_CARGA = 'OK'");
                 int valor = (Integer)model.getValueAt(x, 2);
-                double porcentaje;
+                String porcentaje;
                 if(rset.next()){
                     model.setValueAt(rset.getInt(1), x, 4);
                     //porcentaje = Math.round(((rset.getInt(1)/valor)*100));
-                    porcentaje = Math.round((rset.getInt(1)*100)/valor);
-
+                    double cantidad = ((rset.getInt(1)*100)/valor);
+                    porcentaje = String.format("%.02f",cantidad);
                     System.out.println("porcentaje: " + porcentaje);
                     model.setValueAt(porcentaje, x, 5);
+                    model.setValueAt("Terminado", x, 6);
                 }
             }
-            
             stmt.close();
             conn.close();
             rset.close();
         } catch (SQLException f) {
             System.out.println(f.getMessage());
             f.printStackTrace();
-        }
+        } 
     }
 }

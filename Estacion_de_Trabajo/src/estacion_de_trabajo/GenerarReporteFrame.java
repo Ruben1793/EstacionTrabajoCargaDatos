@@ -24,11 +24,12 @@ public class GenerarReporteFrame extends JFrame {
     private JButton generarReporte = new JButton();
     private String user;
     private String pass;
-    
-    public GenerarReporteFrame(String user, String pass) {
+    private String direccion;
+    public GenerarReporteFrame(String user, String pass,String direccion) {
         try {
             this.user = user;
             this.pass = pass;
+            this.direccion = direccion;
             jbInit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -37,11 +38,11 @@ public class GenerarReporteFrame extends JFrame {
     private void jbInit() throws Exception {
         this.getContentPane().setLayout( null );
         this.setSize( new Dimension(400, 300) );
-        queryGenerarReporte.setBounds(new Rectangle(0, 60, 400, 175));
+        queryGenerarReporte.setBounds(new Rectangle(0, 60, 400, 145));
         mensaje.setText("Introducir el query para generar el reporte");
         mensaje.setBounds(new Rectangle(94, 25, 210, 20));
         generarReporte.setText("Generar Reporte");
-        generarReporte.setBounds(new Rectangle(245, 245, 120, 20));
+        generarReporte.setBounds(new Rectangle(245, 225, 120, 20));
         generarReporte.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     generarReporte_actionPerformed(e);

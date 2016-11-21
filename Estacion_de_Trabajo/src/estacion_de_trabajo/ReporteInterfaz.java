@@ -1,24 +1,26 @@
 package estacion_de_trabajo;
 
 import java.awt.Dimension;
-
 import java.awt.Rectangle;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import java.io.File;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import java.io.*;
+import java.sql.*;
+//import org.apache.poi.hssf.usermodel.HSSFSheet;
+//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+//import org.apache.poi.hssf.usermodel.HSSFRow;
+//import org.apache.poi.hssf.usermodel.HSSFCell;
+
 
 public class ReporteInterfaz extends JFrame {
     private JCheckBox reporteGlobal = new JCheckBox();
@@ -30,15 +32,13 @@ public class ReporteInterfaz extends JFrame {
     private String pass;
     private String url;
     private static String interfaz;
-    private String comando = "SELECT '"+ interfaz +"' INTERFASE,  REPLACE(estatus_carga, 'OK', 'REGISTROS CORRECTOS') ESTATUS, TOTAL\n" + 
-    "  FROM (SELECT estatus_carga, COUNT(estatus_carga) TOTAL\n" + 
-    "  FROM " + interfaz +"\n" + 
-    " GROUP BY estatus_carga);";
-    public ReporteInterfaz(String user, String pass, String url) {
+    private String direccion;
+    public ReporteInterfaz(String user, String pass, String url, String direccion) {
         try {
             this.user = user;
             this.pass = pass;
             this.url = url;
+            this.direccion = direccion;
             try {
                  Class.forName ("oracle.jdbc.driver.OracleDriver");
             } catch (ClassNotFoundException ex) {
@@ -65,7 +65,6 @@ public class ReporteInterfaz extends JFrame {
             e.printStackTrace();
         }
     }
-
     private void jbInit() throws Exception {
         this.getContentPane().setLayout( null );
         this.setSize( new Dimension(400, 300) );
@@ -95,8 +94,9 @@ public class ReporteInterfaz extends JFrame {
         this.getContentPane().add(reporteGlobal, null);
         this.setTitle("Reporte de Interfaz");
     }
-
     private void generarReporte_actionPerformed(ActionEvent e) {
+       // ExcelDocument xls = new ExcelDocument();
+      // HSSFWorkbook wb = new HSSFWorkbook();
         Connection conn;
         try {
             Class.forName ("oracle.jdbc.driver.OracleDriver");
@@ -109,10 +109,12 @@ public class ReporteInterfaz extends JFrame {
                 Statement stmt = conn.createStatement();
                 ResultSet rset = null;
                 interfaz = seleccionarInterfaz.getSelectedItem().toString();
+                
                 System.out.println("SELECT '"+ interfaz +"' INTERFASE,  REPLACE(estatus_carga, 'OK', 'REGISTROS CORRECTOS') ESTATUS, TOTAL\n" + 
                                     "  FROM (SELECT estatus_carga, COUNT(estatus_carga) TOTAL\n" + 
                                     "  FROM " + interfaz +"\n" + 
-                                    " GROUP BY estatus_carga);");
+                                    " GROUP BY estatus_carga)");
+                
                 rset = stmt.executeQuery("SELECT '"+ interfaz +"' INTERFASE,  REPLACE(estatus_carga, 'OK', 'REGISTROS CORRECTOS') ESTATUS, TOTAL\n" + 
                                             "  FROM (SELECT estatus_carga, COUNT(estatus_carga) TOTAL\n" + 
                                             "  FROM " + interfaz +"\n" + 
@@ -122,8 +124,10 @@ public class ReporteInterfaz extends JFrame {
                     System.out.print(rset.getString(1)+" ");
                     System.out.print(rset.getString(2)+" ");
                     System.out.println(rset.getString(3));
+                    //xls.easy_WriteXLSFile_FromResultSet(direccion+"\\Reporte_Individual.xls", 
+                    //                                    rset, new ExcelAutoFormat(Styles.AUTOFORMAT_EASYXLS1), "Sheet1");
                 }
-                    
+                
                 stmt.close();
                 conn.close();
                 rset.close();
@@ -133,13 +137,13 @@ public class ReporteInterfaz extends JFrame {
             }
         }
         else if(reporteGlobal.isSelected()){
-            
+            GenerarReporteFrame gr = new GenerarReporteFrame(user, pass,direccion);
+            gr.setVisible(true);
         }
-        
-       // GenerarReporteFrame gr = new GenerarReporteFrame(user, pass);
-        //gr.setVisible(true);
+        else{
+            JOptionPane.showMessageDialog(this, "Por favor selecciona: Indivual o Todas?");
+        }
     }
-
     private void cancelarReporte_actionPerformed(ActionEvent e) {
         this.dispose();
     }
