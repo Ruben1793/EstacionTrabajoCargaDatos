@@ -110,6 +110,8 @@ public class ReporteInterfaz extends JFrame {
                 ResultSet rset = null;
                 interfaz = seleccionarInterfaz.getSelectedItem().toString();
                 
+                String path = direccion + "\\reporte " + interfaz + ".txt";
+                
                 System.out.println("SELECT '"+ interfaz +"' INTERFASE,  REPLACE(estatus_carga, 'OK', 'REGISTROS CORRECTOS') ESTATUS, TOTAL\n" + 
                                     "  FROM (SELECT estatus_carga, COUNT(estatus_carga) TOTAL\n" + 
                                     "  FROM " + interfaz +"\n" + 
@@ -119,21 +121,29 @@ public class ReporteInterfaz extends JFrame {
                                             "  FROM (SELECT estatus_carga, COUNT(estatus_carga) TOTAL\n" + 
                                             "  FROM " + interfaz +"\n" + 
                                             " GROUP BY estatus_carga)");
+                File file = new File(path);
+                file.createNewFile();
+                FileWriter fw = new FileWriter(file.getAbsoluteFile());
+                BufferedWriter bw = new BufferedWriter(fw);
                 while(rset.next()){
-                    //System.out.println(rset.getString(0));
+                    bw.write("Interface: " + rset.getString(1) + ", ");
+                    bw.write("Estatus: " + rset.getString(2) + ", ");
+                    bw.write("Total: " + rset.getString(3));
+                    bw.newLine();
+                    
                     System.out.print(rset.getString(1)+" ");
                     System.out.print(rset.getString(2)+" ");
                     System.out.println(rset.getString(3));
-                    //xls.easy_WriteXLSFile_FromResultSet(direccion+"\\Reporte_Individual.xls", 
-                    //                                    rset, new ExcelAutoFormat(Styles.AUTOFORMAT_EASYXLS1), "Sheet1");
                 }
-                
+                bw.close();
                 stmt.close();
                 conn.close();
                 rset.close();
                 interfaz = null;
             }catch(SQLException ex){
                 ex.printStackTrace();
+            }catch (IOException f) {
+                f.printStackTrace();
             }
         }
         else if(reporteGlobal.isSelected()){
